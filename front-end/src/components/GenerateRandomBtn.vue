@@ -14,7 +14,6 @@ export default {
     name: 'GenerateRandomBtn',
     methods: {
         generateRandomQuote() {
-            this.$store.commit('errorsModule/setError', '');
             this.$store.dispatch('quoteModule/generateRandomQuote');
         }
     }

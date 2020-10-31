@@ -1,6 +1,7 @@
 export default function wrapAxios(fn) {
     return function(ctx, payload) {
         ctx.commit('loaderModule/setLoader', true, { root: true });
+        ctx.commit('errorsModule/setError', '', { root: true })
         return fn(ctx, payload).catch(e => {
             let message = ((e.response || {}).data || {}).message;
             if(message === undefined) {
