@@ -5,7 +5,7 @@
     shaped
     v-show="quote._id !== undefined"
     >
-        <v-card-title>{{quote.en}}</v-card-title>
+        <v-card-title class="breakEntireWord">{{quote.en}}</v-card-title>
         <v-card-text>
             <v-row class="px-5">
                 <span>By {{quote.author}}</span>

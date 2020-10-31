@@ -12,6 +12,7 @@
 <script>
 import RandomBtn from './components/GenerateRandomBtn';
 import QuoteCard from './components/QuoteCard';
+import './App.css';
 
 export default {
     name: 'App',
