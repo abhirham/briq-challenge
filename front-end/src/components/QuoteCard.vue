@@ -20,8 +20,6 @@
                 color="orange"
                 ></v-rating>
             </v-row>
-            
-            
         </v-card-text>
     </v-card>
 </template>
@@ -30,17 +28,17 @@ export default {
     name: 'QuoteCard',
     computed: {
         quote() {
-            return this.$store.state.quoteToShow;
+            return this.$store.state.quoteModule.quoteToShow;
         }
     },
     methods: {
         addRating(val){
-            this.$store.dispatch('upVoteQuote', {quoteId: this.quote.id, newVote: val}).then(() => {
+            this.$store.dispatch('quoteModule/upVoteQuote', {quoteId: this.quote.id, newVote: val}).then(() => {
                 if(val < 4) {
-                    this.$store.dispatch('generateRandomQuote');
+                    this.$store.dispatch('quoteModule/generateRandomQuote');
                     return;
                 }
-                this.$store.dispatch('fetchSimilarQuote', this.quote);
+                this.$store.dispatch('quoteModule/fetchSimilarQuote', this.quote);
             });
         }
     }

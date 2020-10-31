@@ -18,9 +18,6 @@ export default {
     components: {
         RandomBtn,
         QuoteCard
-    },
-    mounted() {
-        this.$store.dispatch('fetchAllQuotes');
     }
 };
 </script>
