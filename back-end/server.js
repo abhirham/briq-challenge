@@ -56,7 +56,8 @@ app.get('/random', axiosWrapper((req,res,next) => {
     }
 }));
 
-app.get('/similar', async (req,res,next) => {
+app.get('/fetch/:filter', async (req,res,next) => {
+    let filter = req.params;
     try {
         let payload = req.query;
         payload.visited = JSON.parse(payload.visited);
@@ -65,13 +66,13 @@ app.get('/similar', async (req,res,next) => {
             quotesTopics[payload.id] = await topicApi(payload.en);
         }
         let maxIdx = quotes.length-1;
-        findSimilar(0);
+        findQuote(0);
     
-        async function findSimilar(idx=0) {
+        async function findQuote(idx=0) {
             if(idx > maxIdx) return;
             let quote = quotes[idx];
             if(payload.visited[quote.id] !== undefined) {
-                findSimilar(idx+1);
+                findQuote(idx+1);
                 return;
             }
             if(quotesTopics[quote.id] === undefined) {
@@ -80,12 +81,15 @@ app.get('/similar', async (req,res,next) => {
             let similar = quotesTopics[quote.id].some(topic => {
                 return quotesTopics[payload.id].indexOf(topic) > -1
             });
+
+            if(filter === "different") similar = !similar;
+            
             if(similar) {
                 res.send(quote);
                 writeToFile(quotesTopics);
                 return;
             }
-            findSimilar(idx+1);
+            findQuote(idx+1);
         }
     } catch(e) {
         console.log(e.message)

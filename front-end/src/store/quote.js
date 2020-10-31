@@ -30,7 +30,12 @@ export default {
             return axios.post('/upvote', payload);
         }),
         fetchSimilarQuote: wrapAxios(({dispatch, state}, payload) => {
-            return axios.get('/similar', {params: {...payload, visited: state.visitedQuotes}}).then(res => {
+            return axios.get('/fetch/similar', {params: {...payload, visited: state.visitedQuotes}}).then(res => {
+                dispatch('showQuote', res.data)
+            });
+        }),
+        fetchDifferentQuote: wrapAxios(({dispatch, state}, payload) => {
+            return axios.get('/fetch/different', {params: {...payload, visited: state.visitedQuotes}}).then(res => {
                 dispatch('showQuote', res.data)
             });
         })

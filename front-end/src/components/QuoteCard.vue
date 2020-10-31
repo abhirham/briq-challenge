@@ -35,7 +35,7 @@ export default {
         addRating(val){
             this.$store.dispatch('quoteModule/upVoteQuote', {quoteId: this.quote.id, newVote: val}).then(() => {
                 if(val < 4) {
-                    this.$store.dispatch('quoteModule/generateRandomQuote');
+                    this.$store.dispatch('quoteModule/fetchDifferentQuote', this.quote);
                     return;
                 }
                 this.$store.dispatch('quoteModule/fetchSimilarQuote', this.quote);
