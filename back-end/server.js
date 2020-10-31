@@ -48,9 +48,19 @@ app.get('/ready', axiosWrapper((req,res,next) => {
 }));
 
 app.get('/random', axiosWrapper((req,res,next) => {
-    return quotesApi.get('/quotes/random').then(response => {
-        res.json(response.data);
-    }).catch(e => {throw new CustomError('Unable to fetch random quote.', 500)});
+    let visited = JSON.parse(req.query.visited);
+    return findUnvisitedQuote();
+
+    // making sure the random quote was not visited before.
+    function findUnvisitedQuote() {
+        return quotesApi.get('/quotes/random').then(response => {
+            if(visited[response.data.id] === undefined){
+                res.json(response.data);
+                return;
+            }
+            findUnvisitedQuote();
+        }).catch(e => {throw new CustomError('Unable to fetch random quote.', 500)});
+    }
 }));
 
 app.get('/similar', (req,res,next) => {
