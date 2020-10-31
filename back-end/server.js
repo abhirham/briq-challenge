@@ -1,11 +1,12 @@
 const express = require('express');
 const app = express();
 const axios = require('axios');
-const bodyParser = require('body-parser');
 const cors = require('cors');
+const {CustomError, axiosWrapper} = require('./utils');
+const morgan = require('morgan');
 
 app.use(cors());
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(morgan('tiny'));
 app.use(express.json());
 
 const quotesApi = axios.create({
@@ -28,22 +29,29 @@ let promise = new Promise((resolve, reject) => {
             });
         });
         resolve(true);
-    }).catch(e => reject(e));
+    }).catch(e => { 
+        console.log(e.message);
+        reject('Something went wrong at the server. Please try again later.');
+    });
 });
 
-app.get('/', (req,res,next) => {
-    promise.then(response => res.json(quotes)).catch(e => res.status('500').send('Unable to fetch quotes.'));
-});
+promise.catch(e => console.log(e));
 
-app.get('/ready', (req,res,next) => {
-    promise.then(response => res.send(response)).catch(e => res.status('500').send('Unable to fetch quotes.'));
-});
+app.get('/', axiosWrapper((req,res,next) => {
+    return promise.then(response => res.json(quotes)).catch(e => {
+        throw new CustomError(e, 500)
+    });
+}));
 
-app.get('/random', (req,res,next) => {
-    quotesApi.get('/quotes/random').then(response => {
+app.get('/ready', axiosWrapper((req,res,next) => {
+    return promise.then(response => res.send(response)).catch(e => {throw new CustomError(e, 500)});
+}));
+
+app.get('/random', axiosWrapper((req,res,next) => {
+    return quotesApi.get('/quotes/random').then(response => {
         res.json(response.data);
-    }).catch(e => res.status('500').send('Unable to fetch random quote.'));
-});
+    }).catch(e => {throw new CustomError('Unable to fetch random quote.', 500)});
+}));
 
 app.get('/similar', (req,res,next) => {
     
@@ -110,11 +118,11 @@ app.get('/similar', (req,res,next) => {
 });
 
 app.post('/upvote', (req,res,next) => {
-    quotesApi.post('/quotes/vote', req.body).then(response => res.send(response.data)).catch(e => res.status('500').send('Unable to upvote quote.'));;
+    return quotesApi.post('/quotes/vote', req.body).then(response => res.send(response.data)).catch(e => {throw new CustomError('Unable to upvote quote.', 500)});
 });
 
 app.use((err, req, res, next) => {
-    res.status(500).send(err.message);
-})
+    res.status(err.status).send(err)
+});
 
 app.listen(3000, () => console.log('listening on port 3000'));
