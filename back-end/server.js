@@ -12,7 +12,7 @@ app.use(express.json());
 
 const quotesApi = axios.create({
     baseURL: "https://programming-quotes-api.herokuapp.com",
-    timeout: 10000
+    timeout: 30000
 });
 
 let quotes = [];
