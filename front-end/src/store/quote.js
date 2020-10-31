@@ -1,4 +1,5 @@
 import axios from '@/axios';
+import wrapAxios from './utils/axiosWrapper';
 
 export default {
     strict: true,
@@ -24,10 +25,4 @@ export default {
             return axios.get('/similar', {params: payload}).then(res => commit('setQuoteToShow', res.data));
         })
     },
-}
-
-function wrapAxios(fn) {
-    return function(ctx, payload) {
-        fn(ctx, payload).catch(e => ctx.commit('errorsModule/addError', e, { root: true }))
-    }
 }
