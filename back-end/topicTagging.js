@@ -11,5 +11,5 @@ const topicApi = axios.create({
 })
 
 module.exports = function fetchTopic(text) {
-    return topicApi.get('/', {params: {text}});
+    return topicApi.get('/', {params: {text}}).then(res => Object.keys(res.data.topic));
 }

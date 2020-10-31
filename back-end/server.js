@@ -4,9 +4,10 @@ const axios = require('axios');
 const cors = require('cors');
 const {CustomError, axiosWrapper} = require('./utils');
 const morgan = require('morgan');
+const topicApi = require('./topicTagging');
+const {writeToFile, readFromFile} = require('./chacheToDisk');
 
 app.use(cors());
-app.use(morgan('tiny'));
 app.use(express.json());
 
 const quotesApi = axios.create({
@@ -14,20 +15,12 @@ const quotesApi = axios.create({
     timeout: 10000
 });
 
-const quotes = {};
+let quotes = [];
+let quotesTopics = readFromFile();
 
 let promise = new Promise((resolve, reject) => {
     quotesApi.get('/quotes').then(res => {
-        res.data.forEach(quote => {
-            if(quote.source === "" || quote.source === null) quote.source = "noSource";
-            let sources = quote.source.split(',');
-            if(!quotes[quote.author]) quotes[quote.author] = {};
-            sources.forEach(source => {
-                source = source.trim().replace(/"/g, '');
-                if(!quotes[quote.author][source]) quotes[quote.author][source] = {};
-                quotes[quote.author][source][quote.id] = {...quote, formattedSource: source};
-            });
-        });
+        quotes = res.data;
         resolve(true);
     }).catch(e => { 
         console.log(e.message);
@@ -63,53 +56,41 @@ app.get('/random', axiosWrapper((req,res,next) => {
     }
 }));
 
-app.get('/similar', (req,res,next) => {
-    let payload = req.query;
-    payload.visited = JSON.parse(payload.visited);
-    let authorObj = quotes[payload.author];
-    let quoteToShow = null;
+app.get('/similar', async (req,res,next) => {
+    try {
+        let payload = req.query;
+        payload.visited = JSON.parse(payload.visited);
+
+        if(quotesTopics[payload.id] === undefined) {
+            quotesTopics[payload.id] = await topicApi(payload.en);
+        }
+        let maxIdx = quotes.length-1;
+        findSimilar(0);
     
-    if(payload.formattedSource === undefined){
-        Object.keys(authorObj).some(source => {
-            if(authorObj[source][payload.id] !== undefined) {
-                payload.formattedSource = source;
-                return true;
+        async function findSimilar(idx=0) {
+            if(idx > maxIdx) return;
+            let quote = quotes[idx];
+            if(payload.visited[quote.id] !== undefined) {
+                findSimilar(idx+1);
+                return;
             }
-            return false;
-        })
-    }
-
-    // search for unvisited quotes in the same author and source.
-    findUnvisitedQuoteInSource(payload.author, payload.formattedSource);
-
-    // search for unvisited quotes in the same author and different source if quoteToShow is still null.
-    if(quoteToShow === null) {
-        searchInSourceOf(payload.author);
-    }
-
-    // search in different authors
-    if(quoteToShow === null) {
-        Object.keys(quotes).some(author => {
-            searchInSourceOf(author);
-            return quoteToShow !== null;
-        });
-    }
-    res.send(quoteToShow);
-
-    function searchInSourceOf(author) {
-        Object.keys(quotes[author]).some(source => {
-            findUnvisitedQuoteInSource(author, source);
-            return quoteToShow !== null;
-        });
-    }
-
-    function findUnvisitedQuoteInSource(author, source) {
-        Object.values(quotes[author][source]).some(quote => {
-            if(payload.visited[quote.id] === undefined) {
-                quoteToShow = quote;
+            if(quotesTopics[quote.id] === undefined) {
+                quotesTopics[quote.id] = await topicApi(quote.en);
             }
-            return quoteToShow !== null;
-        });
+            let similar = quotesTopics[quote.id].some(topic => {
+                return quotesTopics[payload.id].indexOf(topic) > -1
+            });
+            if(similar) {
+                res.send(quote);
+                writeToFile(quotesTopics);
+                return;
+            }
+            findSimilar(idx+1);
+        }
+    } catch(e) {
+        console.log(e.message)
+        let err =  new CustomError('Something went wrong. Please try again later.', 500);
+        next(err);
     }
 });
 
