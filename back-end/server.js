@@ -54,8 +54,8 @@ app.get('/random', axiosWrapper((req,res,next) => {
 }));
 
 app.get('/similar', (req,res,next) => {
-    
     let payload = req.query;
+    payload.visited = JSON.parse(payload.visited);
     let authorObj = quotes[payload.author];
     let quoteToShow = null;
     
@@ -69,8 +69,6 @@ app.get('/similar', (req,res,next) => {
         })
     }
 
-    authorObj[payload.formattedSource][payload.id].visited = true; // setting the visited to true so as to not show this quote again.
-
     // search for unvisited quotes in the same author and source.
     findUnvisitedQuoteInSource(payload.author, payload.formattedSource);
 
@@ -82,9 +80,7 @@ app.get('/similar', (req,res,next) => {
     // search in different authors
     if(quoteToShow === null) {
         Object.keys(quotes).some(author => {
-            if(author.visited === undefined) {
-                searchInSourceOf(author);
-            }
+            searchInSourceOf(author);
             return quoteToShow !== null;
         });
     }
@@ -92,28 +88,18 @@ app.get('/similar', (req,res,next) => {
 
     function searchInSourceOf(author) {
         Object.keys(quotes[author]).some(source => {
-            if(source.visited === undefined) {
-                findUnvisitedQuoteInSource(author, source);
-            }
+            findUnvisitedQuoteInSource(author, source);
             return quoteToShow !== null;
         });
-
-        if(quoteToShow === null) {
-            author.visited = true;
-        }
     }
 
     function findUnvisitedQuoteInSource(author, source) {
         Object.values(quotes[author][source]).some(quote => {
-            if(quote.visited === undefined) {
+            if(payload.visited[quote.id] === undefined) {
                 quoteToShow = quote;
             }
             return quoteToShow !== null;
         });
-
-        if(quoteToShow === null) {
-            source.visited = true;
-        }
     }
 });
 
