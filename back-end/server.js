@@ -82,7 +82,7 @@ app.get('/fetch/:filter', async (req,res,next) => {
                 return quotesTopics[payload.id].indexOf(topic) > -1
             });
 
-            if(filter === "different") similar = !similar;
+            if(filter === "different") similar = !similar; // if client is requesting for a different quote, making sure that the new quote has no matching topic with the existing one.
             
             if(similar) {
                 res.send(quote);

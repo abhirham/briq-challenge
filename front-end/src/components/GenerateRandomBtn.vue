@@ -1,9 +1,9 @@
 <template>
     <v-btn
-      rounded
       color="primary"
       dark
       @click="generateRandomQuote"
+      class="mt-5"
     >
       Generate Random
     </v-btn>

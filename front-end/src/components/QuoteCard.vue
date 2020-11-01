@@ -2,12 +2,15 @@
     <v-card
     elevation="2"
     outlined
-    shaped
     v-show="quote._id !== undefined"
     >
-        <v-card-title class="breakEntireWord">{{quote.en}}</v-card-title>
+        <v-card-title class="breakEntireWord">
+            <v-icon>mdi-format-quote-open</v-icon>
+            {{quote.en}}
+            <v-icon>mdi-format-quote-close</v-icon>
+        </v-card-title>
         <v-card-text>
-            <v-row class="px-5">
+            <v-row class="px-5 font-italic">
                 <span>By {{quote.author}}</span>
                 <v-spacer></v-spacer>
                 <v-rating

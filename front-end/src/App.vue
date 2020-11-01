@@ -1,11 +1,15 @@
 <template>
     <v-app>
         <v-main>
-            <v-container >
-                <Loader />
-                <Errors />
-                <QuoteCard />
-                <RandomBtn />
+            <v-container fill-height>
+                <v-row align="center" justify="center">
+                    <v-col md="6">
+                        <Loader />
+                        <Errors />
+                        <QuoteCard />
+                        <RandomBtn />
+                    </v-col>
+                </v-row>
             </v-container>
         </v-main>
     </v-app>
